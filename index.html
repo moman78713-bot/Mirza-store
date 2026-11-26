@@ -299,6 +299,25 @@ h4.devcat{font:800 17px var(--font-display); margin:8px 0 0}
   background:var(--ink); color:var(--bg); padding:10px 16px; border-radius:12px; font-weight:700; max-width:90vw; text-align:center;
 }
 .who{margin:0; font-size:14px; color:var(--muted); overflow-wrap:anywhere}
+
+.segbtn{min-width:0; padding:0 4px; font-size:14px}
+.announce{background:var(--accent); color:var(--accent-ink); border-radius:12px; padding:10px 14px; margin:0 0 4px; font-weight:800; text-align:center; overflow-wrap:anywhere}
+.art .pic{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.art.has::after{content:""; inset:0; left:0; bottom:0; font-size:0; background:linear-gradient(transparent 40%, rgba(0,0,0,.78))}
+.imgbox{display:grid; gap:10px}
+.imgprev{aspect-ratio:4/3; max-width:260px; width:100%; border:1.5px dashed var(--line); border-radius:12px; background:var(--surface-2) center/cover no-repeat; display:grid; place-items:center; color:var(--muted); font-size:14px}
+.imgbtns{display:flex; gap:8px; flex-wrap:wrap}
+.filebtn{display:inline-flex; align-items:center; justify-content:center; cursor:pointer; box-sizing:border-box}
+.btn.danger{background:transparent; color:var(--danger); border:1.5px solid var(--danger)}
+.prow{background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:8px 10px; display:flex; gap:10px; align-items:center; min-width:0}
+.prow .th{flex:0 0 48px; height:48px; border-radius:8px; background:var(--surface) center/cover no-repeat; border:1px solid var(--line)}
+.prow .pt{flex:1; min-width:0}
+.prow .pt b{display:block; overflow-wrap:anywhere}
+.prow .pt small{color:var(--muted)}
+.prow button{flex:0 0 auto; min-height:44px; padding:0 14px; border-radius:10px; border:1.5px solid var(--line); background:var(--surface); color:var(--ink); font:700 14px var(--font-body); cursor:pointer}
+.swatches{display:flex; gap:10px; flex-wrap:wrap}
+.sw{width:44px; height:44px; border-radius:50%; border:3px solid var(--line); cursor:pointer; padding:0}
+.sw[aria-pressed="true"]{border-color:var(--ink); box-shadow:0 0 0 2px var(--bg) inset}
 </style>
 </head>
 <body>
@@ -317,9 +336,10 @@ h4.devcat{font:800 17px var(--font-display); margin:8px 0 0}
 
 <main class="wrap">
   <div class="banner" id="status" hidden></div>
+  <div class="announce" id="announce" hidden></div>
 
   <section class="hero">
-    <h2>ألعاب وأكسسوارات PS5 و Xbox</h2>
+    <h2 id="heroTitle">ألعاب وأكسسوارات PS5 و Xbox</h2>
     <p id="hello">سجّل حسابك واطلب بسهولة.</p>
     <input id="q" class="search" type="search" placeholder="ابحث عن لعبة أو جهاز" autocomplete="off" aria-label="ابحث عن لعبة أو جهاز">
   </section>
@@ -437,7 +457,8 @@ h4.devcat{font:800 17px var(--font-display); margin:8px 0 0}
     <div class="seg" role="group" aria-label="الأقسام">
       <button class="segbtn" id="tabOrd" type="button" aria-pressed="true">الطلبات</button>
       <button class="segbtn" id="tabPrice" type="button" aria-pressed="false">الأسعار</button>
-      <button class="segbtn" id="tabNew" type="button" aria-pressed="false">منتج جديد</button>
+      <button class="segbtn" id="tabProd" type="button" aria-pressed="false">المنتجات</button>
+      <button class="segbtn" id="tabSet" type="button" aria-pressed="false">الإعدادات</button>
     </div>
 
     <div id="admOrders" class="pane"></div>
@@ -455,19 +476,48 @@ h4.devcat{font:800 17px var(--font-display); margin:8px 0 0}
       </div>
     </div>
 
-    <div id="admNew" hidden class="pane">
-      <form id="newForm" novalidate>
-        <div class="field"><label for="nName">اسم المنتج</label><input id="nName" dir="auto" autocomplete="off"></div>
-        <div class="field"><label for="nPlat">المنصة</label>
-          <select id="nPlat"><option value="ps5">PS5</option><option value="xbox">Xbox</option><option value="both">الاثنين</option></select></div>
-        <div class="field"><label for="nCat">القسم</label>
-          <select id="nCat"><option value="new">لعبة جديدة</option><option value="used">لعبة مستعملة</option><option value="controller">جويستك</option><option value="console">كونسول</option><option value="headset">سماعة</option></select></div>
-        <div class="field"><label for="nGenre">النوع (مثلاً: سباقات)</label><input id="nGenre" autocomplete="off"></div>
-        <div class="field"><label for="nPrice">السعر (د.ع)</label><input id="nPrice" inputmode="numeric" autocomplete="off"></div>
-        <div class="field"><label for="nStock">العدد المتوفر</label><input id="nStock" inputmode="numeric" autocomplete="off"></div>
-        <label class="check" for="nFeat"><input id="nFeat" type="checkbox"> يظهر بالمنتجات المميزة</label>
-        <p class="err" id="newErr" aria-live="polite"></p>
-        <button class="btn primary" id="newGo" type="submit">أضف المنتج</button>
+    <div id="admProds" hidden class="pane">
+      <button id="prodNew" class="btn primary" type="button">+ منتج جديد</button>
+      <input id="prodQ" class="search devsearch" type="search" placeholder="ابحث عن منتج" autocomplete="off" aria-label="ابحث عن منتج">
+      <div class="devlist" id="prodList"></div>
+    </div>
+
+    <div id="admEdit" hidden class="pane">
+      <h3 class="sec" id="editTitle">منتج جديد</h3>
+      <form id="editForm" novalidate>
+        <div class="imgbox">
+          <div class="imgprev" id="ePrev"><span>بدون صورة</span></div>
+          <div class="imgbtns">
+            <label class="btn ghost filebtn" for="eFile">اختر صورة</label>
+            <input id="eFile" type="file" accept="image/*" hidden>
+            <button id="eRmImg" class="btn ghost" type="button" hidden>احذف الصورة</button>
+          </div>
+        </div>
+        <div class="field"><label for="eName">اسم المنتج</label><input id="eName" dir="auto" autocomplete="off"></div>
+        <div class="field"><label for="ePlat">المنصة</label>
+          <select id="ePlat"><option value="ps5">PS5</option><option value="xbox">Xbox</option><option value="both">الاثنين</option></select></div>
+        <div class="field"><label for="eCat">القسم</label>
+          <select id="eCat"><option value="new">لعبة جديدة</option><option value="used">لعبة مستعملة</option><option value="controller">جويستك</option><option value="console">كونسول</option><option value="headset">سماعة</option></select></div>
+        <div class="field"><label for="eGenre">النوع (مثلاً: سباقات)</label><input id="eGenre" autocomplete="off"></div>
+        <div class="field"><label for="ePrice">السعر (د.ع)</label><input id="ePrice" inputmode="numeric" autocomplete="off"></div>
+        <div class="field"><label for="eStock">العدد المتوفر</label><input id="eStock" inputmode="numeric" autocomplete="off"></div>
+        <label class="check" for="eFeat"><input id="eFeat" type="checkbox"> يظهر بالمنتجات المميزة</label>
+        <p class="err" id="eErr" aria-live="polite"></p>
+        <button class="btn primary" id="eSave" type="submit">احفظ</button>
+        <button class="btn ghost" id="eCancel" type="button">رجوع</button>
+        <button class="btn danger" id="eDel" type="button" hidden>احذف المنتج</button>
+      </form>
+    </div>
+
+    <div id="admSet" hidden class="pane">
+      <form id="setForm" novalidate>
+        <div class="field"><label for="cfgTitle">العنوان الرئيسي بالمتجر</label><input id="cfgTitle" autocomplete="off"></div>
+        <div class="field"><label for="cfgSub">النص تحت العنوان (للي ما سجل دخول)</label><input id="cfgSub" autocomplete="off"></div>
+        <div class="field"><label for="cfgAnn">إعلان يظهر فوق المتجر (اتركه فاضي لإخفائه)</label><input id="cfgAnn" autocomplete="off" placeholder="مثلاً: توصيل مجاني هذا الأسبوع"></div>
+        <div class="field"><label for="cfgWa">رقم واتساب المتجر</label><input id="cfgWa" type="tel" inputmode="tel" dir="ltr" placeholder="07701234567"></div>
+        <div class="field"><label>لون الأزرار</label><div class="swatches" id="cfgColors" role="group" aria-label="لون الأزرار"></div></div>
+        <p class="err" id="setErr" aria-live="polite"></p>
+        <button class="btn primary" id="setSave" type="submit">احفظ الإعدادات</button>
       </form>
     </div>
   </div>
